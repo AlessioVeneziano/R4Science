@@ -15,6 +15,7 @@ devtools::install_github("https://github.com/AlessioVeneziano/IndianaBones",loca
 
 ##################################################################Call package
 library(indianaBones)
+library(EBImage)
 
 
 ###################################################Isolation of the cancellous bone
