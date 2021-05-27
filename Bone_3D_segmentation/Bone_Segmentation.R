@@ -4,18 +4,16 @@ if (!requireNamespace("BiocManager",quietly=T))
 BiocManager::install("EBImage")
 
 install.packages("mmand",dependencies=T)
-install.packages("Rdimtools",dependencies=T)
 install.packages("Morpho",dependencies=T)
+install.packages("foreach",dependencies=T)
+install.packages("doParallel",dependencies=T)
+install.packages("tiff",dependencies=T)
 
 install.packages("devtools",dependencies=T)
 devtools::install_github("https://github.com/AlessioVeneziano/IndianaBones",local=F)
 
 
-##################################################################Call packages
-library(EBImage)
-library(mmand)
-library(Rdimtools)
-library(Morpho)
+##################################################################Call package
 library(indianaBones)
 
 
