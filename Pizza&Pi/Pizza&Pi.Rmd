@@ -1,0 +1,150 @@
+---
+title: "Pizza & Pi"
+subtitle: "Approximating Pi with a spoonful of random numbers"
+author: "**Alessio Veneziano**"
+date: June 20, 2022
+
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+<body style="background-color:white;">
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,rgl.useNULL = TRUE)
+```
+
+!["Archymedes studying a pizza" generated using the AI algorithm © Dall-E mini](dallemini_2022-6-19_23-11-31.png)
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+# Handmade Pi: a lesson about randomness, but not a random lesson
+I bet you can tell a pizza from a pie, but **can you tell Pi ($\pi$) from pizza**? All you need is dough, abundant mozzarella, a spoonful of random numbers and a pinch of good old geometry.
+
+In school, you have learnt that $\pi$ is the **ratio between the circumference and diameter of a circle**; others (including me, who did not understand any math back in school) have only learnt that $\pi$ is something you put in formulas to calculate, for example, the area of a circle. The constant $\pi$ is endless and has [endless applications](https://ali.medium.com/22-fascinating-facts-about-pi-%CF%80-that-will-make-you-amazed-4831ed694264)). We have come a long way in computing its decimals from the first successful attempts by [Archimedes of Syracuse](https://www.exploratorium.edu/pi/history-of-pi#:~:text=The%20Egyptians%20calculated%20the%20area,mathematicians%20of%20the%20ancient%20world.).
+
+Here, we will use a rather unlikely recipe to calculate $\pi$ that can be **theoretically reproduced in your kitchen**, although I strongly recommend refraining from such intent, as you will probably end depleting the local stocks of mozzarella (depending on how accurate you want to be, you could deplete the worldwide stocks). The core ingredient of this recipe is **randomness**, but we won't let things happen completely by chance: we will put random numbers to good use.
+
+&nbsp;
+
+# Why random numbers?
+The word *random* is not one looked at with joy by the human mind, so prone to finding patterns that even [a burnt toast can look like Jesus](https://blog.f1000.com/2014/09/25/seeing-jesus-in-toast-the-2014-ig-nobels/). We humans do not get along with the concept of *something happening at random*: it doesn't agree with the very human habit of changing our surrounding environment, because something random is not very easy to predict and control. Even worse, many use the words *random* and *chaotic* interchangeably, while they are [very different things](https://www.youtube.com/watch?v=lPvGLd9_DjA).
+
+For those familiar with statistics and linear regression, we are instructed to find the fitting line and, too often, the random spread of the points (the *unexplained variance*) is regarded as a nuisance: it's the evil preventing us to see the truth. Nevertheless, like it or not, **no system is stranger to a degree of randomness**, which is part of the truth itself.
+
+Here, **let's not dismiss randomness but embrace it** and use it to our advantage. We will approximate the value of $\pi$ using randomly generated numbers. With this simple example, I hope you can intuit **how random processes can generate correct results**.
+
+&nbsp;
+
+# ...it only works on spherical chickens in a vacuum!
+The recipe we will use is not a venture for the average chef: we will need mozzarella sliced in bits of exactly equal size and pizza dough flattened to circular perfection. We'd better leave hobs and ovens behind, and move instead to **the less familiar kitchen of our R environment**.
+
+This pizza is one to deliver, so we will need a pizza box first, and that's very easy to make in R. We can define the pizza box as a matrix of the *xy* coordinates of a square. To make it easy, we center the square in zero, so the coordinates go from -1 to 1 (this will prove handy later). In order, they are the bottom left, top left, top right and bottom right vertices (counter-clockwise). Then, we plot the box as a polygon:
+
+```{r,echo=TRUE,fig.width=5,fig.height=5}
+pizzabox<-rbind(c(-1,-1),c(-1,1),c(1,1),c(1,-1))
+
+plot(pizzabox,cex=0,axes=F,xlab="",ylab="",asp=1)
+polygon(pizzabox,col="grey80")
+```
+
+Now that the box is ready, we have to put the perfectly circular pizza inside, so that it is inscribed in the box (*i.e.* the circle touches each side of the square). Again, very easy to do in R, as we need to generate a circle with radius half the side of the box (or diameter equal to the side of the box). Having a box ranging from -1 to 1 makes this easy, because the radius of the inscribed circle is 1 (we could then omit the radius from the computation but, for clarity, I include it in the code below). We can generate 50 points along the circle as follows:
+
+```{r,echo=TRUE,fig.width=5,fig.height=5}
+radius<-1
+angle<-seq(0,pi*2,length=50)
+pizza<-cbind(radius*sin(angle),radius*cos(angle))
+```
+
+Then, we can plot the pizza inside the box as follows (I am assuming the pizza is covered in tomato sauce, but the menu in R is endless):
+
+```{r,echo=TRUE,eval=FALSE}
+polygon(pizza,col="red")
+```
+
+```{r,echo=FALSE,eval=TRUE,fig.width=5,fig.height=5}
+plot(pizzabox,cex=0,axes=F,xlab="",ylab="",asp=1)
+polygon(pizzabox,col="grey80")
+polygon(pizza,col="red")
+```
+
+&nbsp;
+
+# Add fresh mozzarella until you reach the desired precision
+We are at one crucial step of our recipe: we add our equally sized fresh mozzarella bits to the top. To be correct, we need to be clumsy when performing this task as the bits must go **all over the pizza and the box without bias** (certainly different if we were baking a real pizza). We can perform such random and unbiased operation by extracting random numbers from a *Uniform distribution* (using the function `runif`). In this distribution, all numbers within a range have the same chance of being picked. Therefore, we can proceed by taking `N` random coordinates over the box (along *x* and *y* separately), where the bits will fall. The higher the value of `N`, the more precise our estimation of $\pi$, but more time will be needed for the computation to take place. Let's try with 100000000 (100 millions, 1e+08) mozzarella bits:
+
+```{r,echo=TRUE}
+N<-1e+08
+
+set.seed(42) #added for reproducibility
+x<-runif(N,-1,1)
+y<-runif(N,-1,1)
+```
+
+The random *x* and *y* coordinates are collected from uniform distributions ranging between the limits of the box, so that no mozzarella bits fall outside (if you want to be sure that there is no preference for any specific area of the box or pizza, you can check it thorough `hist(x)` and `hist(y)`). Now we can plot them (for easing visualisation, only 1000 bits are shown):
+
+```{r,echo=TRUE,eval=FALSE}
+points(x[1:1000],y[1:1000],pch=16,col="white",cex=0.5)
+```
+
+```{r,echo=FALSE,eval=TRUE,fig.width=5,fig.height=5}
+plot(pizzabox,cex=0,axes=F,xlab="",ylab="",asp=1)
+polygon(pizzabox,col="grey80")
+polygon(pizza,col="red")
+points(x[1:1000],y[1:1000],pch=16,col="white",cex=0.5)
+```
+
+We made a bit of a mess, but we are about to learn that **mess can be helpful**. To find $\pi$, we need to know the proportion of mozzarella bits that ended up on the pizza. This is quite easy because the bits on the pizza are all those that are at a distance from the center that is equal or lower than 1, the radius. First, we compute the distance of points from zero, then we count how many are equal or below 1, then we compute the proportion and get our result:
+
+```{r,echo=TRUE}
+d<-sqrt(x^2 + y^2)
+Npizza<-sum(d<=1)
+
+Npizza/N
+```
+
+&nbsp;
+
+# We got a number: now what?
+If you were expecting the value of $\pi$ to magically come out of that calculation, let me assure you: we are very close, so close that we only need to multiply our proportion by one number. To discover what that number is, we need a short digression into geometry. After all, we have been dealing with squares and circles and **our proportion can be described using the areas of those shapes**.
+The side of the pizza box is twice the radius of the inscribed pizza (l = 2r), then:
+
+$$
+A_{box}=A_{square}=l^{2}=(2r)^2=4r^2
+$$
+For the pizza:
+
+$$
+A_{pizza}=A_{circle}=\pi{r^2}
+$$
+If we were to use an infinite number of mozzarella bits, we would end up covering the whole box and pizza with no empty spaces left. Therefore, **for mozzarella that tends to infinity**, the area of the box will be proportional to the total number of mozzarella bits, and the same is true for the pizza. Since the proportion of mozzarella bits on the pizza can be expressed as the ratio between `N/Npizza`, it can also be expressed as the ratio between the area of the circle and that of the square:
+
+$$
+\frac{N_{pizza}}{N_{box}} \propto \frac{A_{pizza}}{A_{box}} \propto \frac{\pi{r}^2}{4r^2} \propto \frac{\pi}{4}
+$$
+If we isolate $\pi$ we can see that it equals the proportion of the areas times 4:
+
+$$
+4\frac{N_{pizza}}{N_{box}} \propto \pi
+$$
+We have found our solution: our `N/Npizza` number has to be multiplied by 4! Try it yourself and you will find that you have successfully approximated $\pi$ using only pizza and mozzarella:
+
+```{r,echo=TRUE}
+Npizza/N*4
+```
+
+&nbsp;
+
+# What Archimedes might have done with a Pizza...
+While considering the impressive work on shape that the Scottish biologist [D'Arcy Thompson](https://en.wikipedia.org/wiki/D%27Arcy_Wentworth_Thompson) made entirely by hand, Richard Dawkins pondered "what D'Arcy Thompson might have done with a computer" (in Dawkins, R., 2009 *The greatest show on earth: The evidence for evolution.* Simon and Schuster). Here, in front of the sheer majesty of a pizza-based $\pi$-calculator, we are left to ponder: **what Archimedes might have done with a pizza...**
+
+Archimedes would have probably eaten the pizza, as using it for computing $\pi$ is impractical outside the abstract world of geometry. In any case, I made you aware that you could, in theory, calculate $\pi$ at your local Pizzeria. I hope this bizarre method can help you understand how **in science randomness can be exploited to approximate processes (especially stochastic ones)** and that it provides you with an intuition of how random numbers can generate correct results. Now that I have ruined pizza to those of you who decided to read my blabbering up to the end, my job is done.
+
+To report any error/bug, or to confer me the Fields Medal for my outstanding contribution in mathematics, you can contact me at *veneziano.alessio@gmail.com*.
+
+
+
