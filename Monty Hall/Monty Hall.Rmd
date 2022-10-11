@@ -1,0 +1,227 @@
+---
+title: "Who wants to be (better with probability to slightly increase the chances of becoming) a millionaire?"
+subtitle: "Simulating the Monty Hall problem and beyond"
+author: "**Alessio Veneziano**"
+date: October 10, 2022
+
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+<body style="background-color:white;">
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,rgl.useNULL = TRUE)
+```
+
+![Source of original image: https://nextpittsburgh.com/environment/there-is-more-to-the-goats-of-frick-park-than-you-may-think/, Boaz Frenkel.](IMG_2479-reduced.png)
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+# A weird world indeed...
+Observed from a certain angle, reality is utterly weird and full of paradoxes, enough to make somebody scream out of confusion. [Self-shaving Barbers doubting their own existence](https://en.wikipedia.org/wiki/Barber_paradox); [hot water freezing faster than cold water](https://en.wikipedia.org/wiki/Mpemba_effect) under certain conditions; and don't even let me start about those times you get asked to choose one of three doors, then get showed a goat behind a door you didn't pick, asked if you want to switch, stick with your door and go home with another goat! At least half of my readers must have recognised the [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem), but for the benefit of the other two let's present it concisely.
+
+Before diving head first into the marvels arising from the Monty Hall problem, let me provide some useful instructions on how to use this document. For those who are familiar with the problem, you can skip this part and focus only on the code and the discussed implications below. For those who have been terribly traumatised by R, you are more than welcome to focus on the text only.
+
+&nbsp;
+
+# The Monty Hall problem
+You are participating to a TV show for the possibility to win a fancy sport car (or a cash prize, depending on the version of the problem). Three doors are in front of you: two of them conceal a goat each, while on the other side of the remaining door there is the car. You will win what is behind the door of your choice. First, you pick a door; second, the TV host opens one door (nor the one you picked neither the one with the car) to reveal one goat; third, you are given the possibility to keep your choice or switch to the other door currently closed. What do you do? In other, statistical words, **what is the strategy that maximises your chances of winning** the car? (It goes without saying that the problem assumes you are aiming for the car, although I consider the goat quite an enticing prize).
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+![Figure 1. A graphical representation of the Monty Hall steps. Step 1: you choose a door among three, behind which two goats and one car are concealed; step 2: you get shown that one of the other doors conceals a goat; Step 3: you are given the opportunity to change your choice. Goat photo by Sergiu Valenas on Unsplash.](MontyHall steps - reduced.png)
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+Our quickest answer would be that **either strategy has the same chances of winning the car**: after all, either way the choice is between two doors, thus 1 out of 2, 0.5 probability or 50% chances. If that was your opinion: congratulations, you are **wrong**! Despair not, though, as this happens to most people. It is, in fact, the core of the Monty Hall problem, the very reason for which it is often called a Paradox! It can be shown that **switching door considerably increases the chances of winning**. To understand, let's consider all possible outcomes.
+
+Imagine to pick the door C (Figure 2). There are three possible scenarios: door C conceals the car (winning door), it conceals goat 1 or it conceals goat 2. If C is the winning door, you keep it and win, you change it and lose; if C conceals goat 1, you keep the door and lose, you change it and win, and same goes for goat 2. If you make a quick count, **when you keep the door** of your first choice, **you win in 1 out of 3 scenarios** (0.33 probability), while **changing doors leads to 2 out of 3 scenarios** (0.67 probability) in which you go home with a new car! There is, after all, a best strategy: that of switching your initial choice, and it leads to a higher chance of winning than we envisaged at first sight (0.5 probability).
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+![Figure 2. Possible scenarios of the Monty Hall problem and relative outcomes depending on "keep" or "change" strategies. Goat photo by Sergiu Valenas on Unsplash.](MontyHall_outcomes.png)
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+The weird part, which makes it appear paradoxical, is that the probability changes if we switch door despite what our common sense would suggest. Our common sense, though, is still having troubles accepting this result: **an intuition is what is missing**, and it needs many more doors...
+
+&nbsp;
+
+# Doors galore and the paradox ignore
+The Monty Hall is one of those problems that, once intimately understood, provides a sense of warm pleasure in your brain (at least, that's how I would describe my experience). When we are presented with only three doors, we easily miss why switching door is the best strategy. To have an intuition of the problem, we need many doors and many goats, but still only one fancy sport car. Let's assume we have 100 doors, one concealing the car and the others with 99 goats behind. Once you have chosen a door, the TV host opens 98 doors, leaving closed only your pick and another door. Now you have two doors, only one winning. Why should you switch door?
+
+The secret is not the door itself but the 98 doors that got opened. The TV host takes good care in opening only 98 doors with goats and this is providing very useful information. If you picked the winning door at the start, **you'd had to be pretty lucky to choose the only winning door out of 100** (0.01 probability, 1% chances). The TV host, though, knows exactly which door has the car behind and would purposely leave it closed (they are not picking doors at random). Thus, it is much more likely that the other door, the one you did not choose at the start, is the winning one! In probabilistic terms (and remembering that the sum of the probabilities of all possible outcomes is 1), if you keep your choice, your probability is the initial 0.01, while the probability the car is behind the other door is 1 - 0.01 = 0.99, thus 99% chances. That's why if you switch door you'll be more likely to win!
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+![Figure 3. The Monty Hall problem with 100 doors. At first, you are choosing 1 out of 100 doors (the one in red): you need to be pretty lucky to choose correctly the winning door. Then the TV host opens 98 doors, carefully avoiding to open the winning door: it means that either you were very lucky to have chosen the correct door at first try ("keep" strategy) or you can confidently say that the other door carefully kept closed is likely concealing the car ("change" strategy). Goat photo by Sergiu Valenas on Unsplash.](MontyHall_100.png)
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+Can we prove this? For three doors, we could easily lay down the whole set of possible scenarios, but this becomes progressively harder to visualise the more doors we add to the problem. Physically gathering all the material needed is not advisable either, as I have the feeling one can go bankrupt after buying the whole ovine sample (not to mention the car and the doors). Not everybody realises that **R comes with goats, doors, and fancy cars included** (and bees, dinosaurs, stars and everything you want, really), and all for free! It is the perfect environment to perform our Monty Hall experiments.
+
+&nbsp;
+
+# A digital herd of goats...
+Let's create this unlikely TV show in R, where you are faced with 100 doors, 99 goats and 1 sport car. To do so, we will generate a function that reproduces the Monty Hall game with a set number of doors and a random shuffling of the goats and car. We will call this function `MontyHall`. First, let's build the foundations: the function will allow the user to specify the number of doors `ndoors` and labels for the prize behind the doors as `win` and `lose`. We are giving a default number of doors (`ndoors=3`) and default labels (`win="Car"` and `lose="Goat"`):
+
+
+```{r,echo=TRUE,eval=FALSE}
+MontyHall<-function(ndoors=3,win="Car",lose="Goat"){
+  
+  # function is incomplete
+}
+```
+
+We can start filling up the function with the calculations we need to reproduce the Monty Hall game. First, we fill the object `doors` with as many goats as doors, then we change the first one to a car. To generate a random position for the car, we just need to shuffle the object `doors` so that the positions of goats and the car are assigned randomly. This can be achieved using the function `sample`:
+
+```{r,echo=TRUE,eval=FALSE}
+MontyHall<-function(ndoors=3,win="Car",lose="Goat"){
+  
+  doors<-rep(lose,ndoors) # assign a goat to each door
+    doors[1]<-win # substitute the first door with the car
+    doors<-sample(doors) # shuffle to move the car to a random position
+    
+  # function is incomplete
+}
+```
+
+Now we choose our door by picking a random door out of the `ndoors` using the function `sample`. The object `chosen` now contains the position of the door we picked. We can use this position to produce the result of the *keep* strategy: in fact, the door chosen at this point will be the one we have at the end if we decide not to switch:
+
+```{r,echo=TRUE,eval=FALSE}
+MontyHall<-function(ndoors=3,win="Car",lose="Goat"){
+  
+  doors<-rep(lose,ndoors)
+    doors[1]<-win
+    doors<-sample(doors)
+  
+  chosen<-sample(1:ndoors,size=1) # pick a random door among the ndoors
+  keep<-doors[chosen] # assign the result of the 'keep' strategy
+    
+  # function is incomplete
+}
+```
+
+At this point, the TV host opens all the doors except the one you have chosen and another one (behind one of them there is the car). Since only two doors are left, we can easily model the *change* strategy by using an *if structure, to account for the two possible scenarios: if the door chosen is the car, or if it is a goat. Since only two doors are left closed, `if` we have chosen the car and change, we end up with a goat; if we have chosen a goat and change, we end up with the car:
+
+```{r,echo=TRUE}
+MontyHall<-function(ndoors=3,win="Car",lose="Goat"){
+  
+  doors<-rep(lose,ndoors)
+    doors[1]<-win
+    doors<-sample(doors)
+  
+  chosen<-sample(1:ndoors,size=1)
+  keep<-doors[chosen]
+  
+  nwin<-which(doors==win) # find position of winning door
+  if(chosen==nwin){change<-"Goat" # if the position of the chosen door is that of the car, changing door leads to a goat
+  } else {change<-"Car"} # else if the position of the chosen door is that of a goat, changing door leads to the car
+  
+  return(list(keep=keep,change=change)) # return the result of the keep/change strategies
+}
+```
+
+All we need to do now is to launch the `MontyHall` function in our R environment and run it thousands of times to see the results of the two strategies. In R, we can use the function `replicate` to run the function a specified amount of times. We specify a number of simulations `nsim`. Let's try with 100 doors:
+
+```{r,echo=TRUE}
+nsim<-10000
+
+keep<-replicate(nsim,MontyHall(100)$keep)
+change<-replicate(nsim,MontyHall(100)$change)
+```
+
+We obtain the observed frequencies of cars and goats won by computing the proportion of how many times I win each prize over the total number of simulations. We multiple `*100` to transform the frequency in a percentage:
+
+```{r,echo=TRUE}
+table(keep)/nsim *100
+table(change)/nsim *100
+```
+
+We did not use the function `set.seed` to make the sampling procedures reproducible, so you should expect results different from mine (and different from one trial to the next), but overall you should find that winning the car with the *keep* strategy occurs about 1% of times, while the *change* strategy leads to about 99% wins. You can try with 3 doors now to see what the chances are!
+
+&nbsp;
+
+# More information, better decisions
+Paradoxes use an apparently bizarre or inconspicuous situation to educate about much bigger issues, and the Monty Hall problem is not short of learning opportunities. The key message here is about the **importance of information**. Even if we do it automatically and rarely realise, **we gather information to improve our decisions on a daily basis**. It's more likely that we bring an umbrella if it rained the day before, or if it is winter; we bet our money on a horse based on its previous performance. Using additional information we can better estimate the probability of an event occurring given that certain conditions that make it more or less likely have occurred or not. When information is added, we enter the world of [Conditional Probability](https://en.wikipedia.org/wiki/Conditional_probability), or the **probability of an event happening given that another event has happened** (we assume there is a relationship between the two events, of course). We talk, then, of the probability it will rain given that it is winter, or the probability that Seabiscuit will win the race given that it has already won the last three competitions.
+
+In the Monty Hall case, the information provided by the TV host is that one of the doors not chosen has a goat behind it. If we change our choice, we decide to follow the unspoken information that the TV host knows where the car is and actively avoids to reveal it, thus offering a higher probability of winning. This is particularly evident when dealing with 100 doors and the probability can be easily computed using [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem). We won't go through the nitty-gritty details here, but I suggest reading the following thorough [explanation](https://brilliant.org/wiki/monty-hall-problem/). Let it suffice to say that Bayes' theorem offers an intuitive way of incorporating information in the calculation of probabilities and improve our estimate (but we can save that for another tutorial).
+
+&nbsp;
+
+# Who wants to be a Millionaire
+The Monty hall problem was inspired by the TV show [Let's Make A Deal](https://en.wikipedia.org/wiki/Let%27s_Make_a_Deal), and in fact Monty Hall was the TV host and producer of that show. It turns out, though, that there is at least another TV show where the paradox of the goats can be applied. In **Who Wants to Be A Millionaire** (or the *Millionaire*, for short), participants could use a 50:50 joker reducing the possible answers from 4 to 2. How does the Monty Hall problem applies here?
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+![Figure 4. Jeremy Clarks, host of "Who Wants to Be A Millionaire" in the UK, and a question reduced to two possible answers through the 50:50 joker.](JClarks_50-50_Millionaire.jpg)
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+It does and it doesn't! This is not a "dead/alive cat in the box" thing, rather a situation of ambiguity. Watching the Millionaire, many had the impression that **the two answers removed by the 50:50 joker were always the most obviously wrong** among the quartet, rather than being randomly selected. From the perspective of the producers of the show, it would make sense to leave in the most likely options because it creates suspense, and we can easily see how it would be desirable **to keep the one answer toward which the contestant is inclined**. It is exactly in this context that we can apply the Monty hall problem to the Millionare show. Let's simulate it as we did before.
+
+We create the function `rigged50_50` to simulate a 50:50 joker that always leaves in the game the correct answer and the answer for which the player has expressed propensity. The structure is similar to the `MontyHall` function. First we generate a set of 4 answers, of which only one is correct (indicated by `win="$$$"`) and then we shuffle the answers to obtain a random positioning of wrong and correct answers. Then, we choose an answer (this is the situation where the contestant is reasoning why that answer may be the correct one). As in the Monty Hall, we simulate that two strategies are possible: keep your choice or change answer. In the real show, it would be like discussing with the host that answer B seems likely, using the 50:50 joker that leaves only answers B and C, and either keeping B or changing to C. Since there are only two answers left (and one of them must be correct), we can define the *change* strategy using a similar `if` structure as the one used in the Monty Hall case.
+
+```{r,echo=TRUE}
+rigged50_50<-function(win="$$$",lose="000"){
+
+  ans<-rep(lose,4) # assign each answer as wrong
+    ans[1]<-win # set the first answer as correct
+    ans<-sample(ans) # shuffle to move the correct answer to a random position
+  
+  nwin<-which(ans==win) # find position of correct answer
+  chosen<-sample(1:4,size=1) # pick a random answer (the one the player believes is correct)
+  
+  keep<-ans[chosen] # assign the result of the 'keep' strategy
+  
+  if(nwin==chosen){change<-lose # if the answer chosen is correct, change to incorrect
+  } else {change<-win} # if the answer chosen is incorrect, change to correct
+  
+  return(list(keep=keep,change=change)) # return the result of the keep/change strategies
+}
+```
+
+Now we can simulate the rigged 50:50 joker using the function `replicate` for a specified number of simulations:
+
+```{r,echo=TRUE}
+keep<-replicate(nsim,rigged50_50()$keep)
+change<-replicate(nsim,rigged50_50()$change)
+
+table(keep)/nsim
+table(change)/nsim
+```
+
+The results are impressive: the *change* strategy tends to **win around 75% of times** (probability of 0.75), while the *keep* strategy **merely 25%** (probability of 0.25). It seems that a rigged 50:50 joker creates suspense but at the cost of increasing the chances of answering correctly, if the contestant is familiar with the Monty hall problem (and if they are assuming the joker is indeed rigged). Not 50:50 after all...
+
+&nbsp;
+
+# Just in case...
+Of course, we cannot be sure that the 50:50 joker is not random, especially because we would tend to remember the times the joker created suspense, rather than the times it didn't: we are humans and humans do that. Nevertheless, also producers and creators of TV shows are humans, and humans make mistakes. There could be some TV show where the Monty Hall problem, or other probability tricks, can be exploited to increase our chances of winning the jackpot. The moral of the story is that we all should learn how to handle probability: we wouldn't want to be selected for a TV show and regretting not having payed attention during Statistics classes...better safe than sorry!
+
+To report any error/bug, or if you experimented with the Monty hall in real life and now you have some goats you want to get rid of, you can contact me at veneziano.alessio@gmail.com.
+
+
+
+
+
